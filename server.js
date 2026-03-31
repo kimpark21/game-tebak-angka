@@ -4,7 +4,13 @@ const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+
+// ✅ FIX: CORS biar bisa online
+const io = new Server(server, {
+  cors: {
+    origin: "*"
+  }
+});
 
 app.use(express.static("public"));
 
@@ -12,6 +18,7 @@ let rooms = {};
 
 io.on("connection", (socket) => {
 
+  // 🔑 CREATE ROOM
   socket.on("createRoom", ({ roomName, password, name }) => {
     if (!roomName) return socket.emit("errorMsg", "Nama room wajib!");
 
@@ -28,6 +35,7 @@ io.on("connection", (socket) => {
     socket.emit("successJoin", roomName);
   });
 
+  // 🔑 JOIN ROOM
   socket.on("joinRoom", ({ roomName, password, name }) => {
     let room = rooms[roomName];
 
@@ -43,7 +51,7 @@ io.on("connection", (socket) => {
     socket.emit("successJoin", roomName);
   });
 
-  // 🎲 pilih siapa mulai dulu
+  // 🎲 PILIH GILIRAN PERTAMA
   socket.on("setFirstTurn", ({ roomName, playerId }) => {
     let room = rooms[roomName];
     if (!room) return;
@@ -53,6 +61,7 @@ io.on("connection", (socket) => {
     startTimer(roomName);
   });
 
+  // 🎯 SET ANGKA
   socket.on("setNumber", ({ roomName, number }) => {
     let room = rooms[roomName];
     if (!room) return;
@@ -63,6 +72,7 @@ io.on("connection", (socket) => {
     player.number = Number(number);
   });
 
+  // 🎯 TEBAK
   socket.on("guess", ({ roomName, guess }) => {
     let room = rooms[roomName];
     if (!room) return;
@@ -99,7 +109,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 👀 cheat lihat angka lawan
+  // 😈 CHEAT
   socket.on("cheat", (roomName) => {
     let room = rooms[roomName];
     if (!room) return;
@@ -110,11 +120,12 @@ io.on("connection", (socket) => {
     }
   });
 
+  // ⏱️ TIMER
   function startTimer(roomName) {
     let room = rooms[roomName];
     if (!room) return;
 
-    let time = 10; // detik
+    let time = 10;
 
     clearInterval(room.timer);
 
@@ -125,8 +136,9 @@ io.on("connection", (socket) => {
       if (time < 0) {
         clearInterval(room.timer);
 
-        // auto pindah giliran
         let opponent = room.players.find(p => p.id !== room.turn);
+        if (!opponent) return;
+
         room.turn = opponent.id;
 
         io.to(roomName).emit("turn", room.turn);
@@ -135,6 +147,25 @@ io.on("connection", (socket) => {
     }, 1000);
   }
 
+  // 🔌 DISCONNECT HANDLE (biar tidak error kalau keluar)
+  socket.on("disconnect", () => {
+    for (let r in rooms) {
+      let room = rooms[r];
+
+      room.players = room.players.filter(p => p.id !== socket.id);
+
+      if (room.players.length === 0) {
+        clearInterval(room.timer);
+        delete rooms[r];
+      }
+    }
+  });
+
 });
 
-server.listen(3000);
+// ✅ FIX PALING PENTING (WAJIB UNTUK RAILWAY)
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+  console.log("Server jalan di port " + PORT);
+});
