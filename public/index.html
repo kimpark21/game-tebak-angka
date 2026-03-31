@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tebak Angka</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- MENU -->
+<div id="menu" class="card">
+  <h1>🎯 Tebak Angka</h1>
+
+  <input id="name" placeholder="Nama kamu">
+
+  <h3>Buat Room</h3>
+  <input id="createRoom" placeholder="Nama Room">
+  <input id="createPass" placeholder="Kunci (opsional)">
+  <button onclick="createRoom()">Buat Room</button>
+
+  <h3>Join Room</h3>
+  <input id="joinRoom" placeholder="Nama Room">
+  <input id="joinPass" placeholder="Kunci (jika ada)">
+  <button onclick="joinRoom()">Join Room</button>
+</div>
+
+<!-- GAME -->
+<div id="game" class="card hidden">
+  <h2 id="roomTitle"></h2>
+
+  <p id="turn">Menunggu...</p>
+  <p id="timer">⏱️ 10</p>
+
+  <input id="number" type="number" placeholder="Angka rahasia">
+  <button onclick="setNumber()">Set Angka</button>
+
+  <div class="start-buttons">
+    <button onclick="setFirstTurn()">Saya dulu</button>
+  </div>
+
+  <hr>
+
+  <input id="guess" type="number" placeholder="Tebakan">
+  <button id="guessBtn" onclick="guess()">Tebak</button>
+
+  <p id="result"></p>
+</div>
+
+<!-- AUDIO -->
+<audio id="click" src="https://www.soundjay.com/buttons_c2026/sounds/button-3.mp3"></audio>
+<audio id="win" src="https://e.top4top.io/m_3742nnpcx1.mp3"></audio>
+<audio id="lose" src="https://g.top4top.io/m_37420h6z91.mp3"></audio>
+<audio id="turnSound" src="https://www.soundjay.com/button/beep-09.wav"></audio>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
